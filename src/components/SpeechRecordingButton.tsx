@@ -4,16 +4,19 @@ import { SpeechRecording, type SpeechRecordingConfig } from '../services/speechR
 interface SpeechRecordingButtonProps {
   apiKey: string;
   onTranscription: (text: string) => void;
+  onRecordingComplete?: (finalText: string) => void;
   disabled?: boolean;
 }
 
 const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({ 
   apiKey, 
-  onTranscription, 
+  onTranscription,
+  onRecordingComplete,
   disabled = false 
 }) => {
   const [status, setStatus] = useState<'idle' | 'recording' | 'processing' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [lastTranscript, setLastTranscript] = useState<string>('');
   const speechRecordingRef = useRef<SpeechRecording | null>(null);
 
   const handleStartRecording = async () => {
@@ -27,6 +30,7 @@ const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({
 
     try {
       setError(null);
+      setLastTranscript(''); // Clear any previous transcript
       
       const config: SpeechRecordingConfig = {
         apiKey,
@@ -34,6 +38,7 @@ const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({
         language: 'en',
         onTranscription: (text: string) => {
           console.log('Transcription received in component:', text);
+          setLastTranscript(text);
           onTranscription(text);
         },
         onError: (errorMsg: string) => {
@@ -61,6 +66,12 @@ const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({
     if (speechRecordingRef.current) {
       speechRecordingRef.current.stopRecording();
       speechRecordingRef.current = null;
+      
+      // Call onRecordingComplete with the last transcript when recording stops
+      if (onRecordingComplete && lastTranscript.trim()) {
+        onRecordingComplete(lastTranscript);
+      }
+      setLastTranscript('');
     }
   };
 

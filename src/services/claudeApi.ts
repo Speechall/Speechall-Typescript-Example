@@ -48,11 +48,19 @@ export async function updateHTML(currentHTML: string, updatePrompt: string): Pro
       messages: [{
         role: 'user',
         content: `Here is the current HTML:
+\`\`\`html
 ${currentHTML}
+\`\`\`
 
-Please update this HTML based on the following instruction: "${updatePrompt}"
+IMPORTANT: The user's instruction below is an ADDITION/MODIFICATION to the existing HTML above. Do NOT replace the entire HTML content. Instead:
+1. Keep all existing HTML elements and content that are not specifically mentioned in the instruction
+2. Only modify, add to, or enhance the parts that the instruction specifically refers to
+3. Preserve the overall structure and styling unless the instruction explicitly asks to change them
+4. Think of this as an incremental update, not a complete rewrite
 
-Return only the updated HTML code without explanations. The HTML should be complete and functional with inline CSS styles. Do not include <!DOCTYPE>, <html>, <head>, or <body> tags - just the content that can be rendered directly in a div.`
+User instruction: "${updatePrompt}"
+
+Return the complete updated HTML code (keeping existing content + applying the user's changes). Do not include explanations. The HTML should be functional with inline CSS styles. Do not include <!DOCTYPE>, <html>, <head>, or <body> tags - just the content that can be rendered directly in a div.`
       }]
     });
 

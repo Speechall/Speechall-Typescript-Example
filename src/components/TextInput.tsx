@@ -21,19 +21,10 @@ export default function TextInput({ onSubmit, isLoading, placeholder = "Describe
   };
 
   const handleTranscription = (transcribedText: string) => {
-    // Set the transcribed text in the textarea so user can see it
+    // Filter out empty strings and update text field with each transcript
     if (transcribedText.trim()) {
       setText(transcribedText.trim());
       setIsFromSpeech(true);
-      
-      // Optionally auto-submit after a short delay to let user see the text
-      setTimeout(() => {
-        if (!isLoading) {
-          onSubmit(transcribedText.trim());
-          setText('');
-          setIsFromSpeech(false);
-        }
-      }, 1000); // 1 second delay to let user see the transcribed text
     }
   };
 
@@ -53,7 +44,7 @@ export default function TextInput({ onSubmit, isLoading, placeholder = "Describe
         <div className="input-container">
           {isFromSpeech && (
             <div className="speech-indicator">
-              🎤 Transcribed from speech - Auto-submitting in 1 second...
+              🎤 Transcribed from speech
             </div>
           )}
           <textarea
@@ -79,6 +70,13 @@ export default function TextInput({ onSubmit, isLoading, placeholder = "Describe
       <SpeechRecordingButton
         apiKey={speechallApiKey}
         onTranscription={handleTranscription}
+        onRecordingComplete={(finalText: string) => {
+          if (finalText.trim() && !isLoading) {
+            onSubmit(finalText.trim());
+            setText('');
+            setIsFromSpeech(false);
+          }
+        }}
         disabled={isLoading}
       />
     </div>
