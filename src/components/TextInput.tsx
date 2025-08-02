@@ -1,16 +1,21 @@
-import { useState } from 'react';
-import SpeechRecordingButton from './SpeechRecordingButton';
+import { useState, useRef } from 'react';
+import SpeechRecordingButton, { type SpeechRecordingButtonRef } from './SpeechRecordingButton';
 
 interface TextInputProps {
   onSubmit: (text: string) => void;
   onTranscriptionUpdate?: (text: string) => void;
   isLoading: boolean;
   placeholder?: string;
+  onRecordingStateChange?: (isRecording: boolean) => void;
+  speechRecordingRef?: React.RefObject<SpeechRecordingButtonRef | null>;
 }
 
-export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, placeholder = "Describe the HTML you want to generate..." }: TextInputProps) {
+export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, placeholder = "Describe the HTML you want to generate...", onRecordingStateChange, speechRecordingRef }: TextInputProps) {
   const [text, setText] = useState('');
   const [isFromSpeech, setIsFromSpeech] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const internalSpeechRecordingRef = useRef<SpeechRecordingButtonRef>(null);
+  const effectiveSpeechRecordingRef = speechRecordingRef || internalSpeechRecordingRef;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +46,13 @@ export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, 
     }
   };
 
+  const handleRecordingStateChange = (recordingState: boolean) => {
+    setIsRecording(recordingState);
+    if (onRecordingStateChange) {
+      onRecordingStateChange(recordingState);
+    }
+  };
+
   const speechallApiKey = import.meta.env.VITE_SPEECHALL_API_KEY;
 
   return (
@@ -62,7 +74,7 @@ export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, 
           />
           <button 
             type="submit" 
-            disabled={!text.trim() || isLoading}
+            disabled={!text.trim() || isLoading || isRecording}
             className="submit-button"
           >
             {isLoading ? 'Generating...' : 'Generate HTML'}
@@ -73,6 +85,7 @@ export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, 
       <div className="input-divider">or</div>
       
       <SpeechRecordingButton
+        ref={effectiveSpeechRecordingRef}
         apiKey={speechallApiKey}
         onTranscription={handleTranscription}
         onRecordingComplete={() => {
@@ -80,6 +93,7 @@ export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, 
           setText('');
           setIsFromSpeech(false);
         }}
+        onRecordingStateChange={handleRecordingStateChange}
         disabled={isLoading}
       />
     </div>

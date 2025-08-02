@@ -12,8 +12,10 @@ export class SpeechRecording {
   private audioContext: AudioContext | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
   private workletNode: AudioWorkletNode | null = null;
+  private mediaRecorder: MediaRecorder | null = null;
   private config: SpeechRecordingConfig;
   private status: 'idle' | 'recording' | 'processing' | 'error' = 'idle';
+  private isPaused: boolean = false;
 
   constructor(config: SpeechRecordingConfig) {
     this.config = config;
@@ -119,7 +121,7 @@ export class SpeechRecording {
       
       this.workletNode.port.onmessage = (event) => {
         console.log('Sending audio data via WebSocket:', event.data.byteLength, 'bytes');
-        if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+        if (this.websocket && this.websocket.readyState === WebSocket.OPEN && !this.isPaused) {
           this.websocket.send(event.data);
         }
       };
@@ -137,24 +139,24 @@ export class SpeechRecording {
 
   private setupMediaRecorderFallback(stream: MediaStream): void {
     console.log('Using MediaRecorder fallback...');
-    const mediaRecorder = new MediaRecorder(stream, {
+    this.mediaRecorder = new MediaRecorder(stream, {
       mimeType: 'audio/webm;codecs=opus'
     });
 
-    mediaRecorder.ondataavailable = (event) => {
+    this.mediaRecorder.ondataavailable = (event) => {
       console.log('MediaRecorder data available:', event.data.size, 'bytes');
-      if (event.data.size > 0 && this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+      if (event.data.size > 0 && this.websocket && this.websocket.readyState === WebSocket.OPEN && !this.isPaused) {
         // Convert blob to array buffer and send
         event.data.arrayBuffer().then(buffer => {
           console.log('Sending MediaRecorder data via WebSocket:', buffer.byteLength, 'bytes');
-          if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+          if (this.websocket && this.websocket.readyState === WebSocket.OPEN && !this.isPaused) {
             this.websocket.send(buffer);
           }
         });
       }
     };
 
-    mediaRecorder.start(100); // Collect data every 100ms
+    this.mediaRecorder.start(100); // Collect data every 100ms
     console.log('MediaRecorder started');
   }
 
@@ -204,6 +206,11 @@ export class SpeechRecording {
 
   private cleanupAudioResources(): void {
     // Clean up audio processing
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop();
+      this.mediaRecorder = null;
+    }
+
     if (this.workletNode) {
       this.workletNode.disconnect();
       this.workletNode = null;
@@ -220,8 +227,23 @@ export class SpeechRecording {
     }
   }
 
+  pauseRecording(): void {
+    if (this.status === 'recording') {
+      this.isPaused = true;
+      console.log('Recording paused');
+    }
+  }
+
+  resumeRecording(): void {
+    if (this.status === 'recording' && this.isPaused) {
+      this.isPaused = false;
+      console.log('Recording resumed');
+    }
+  }
+
   stopRecording(): void {
     this.setStatus('processing');
+    this.isPaused = false;
 
     // Close WebSocket
     if (this.websocket) {
@@ -239,5 +261,9 @@ export class SpeechRecording {
 
   isRecording(): boolean {
     return this.status === 'recording';
+  }
+
+  isPausedRecording(): boolean {
+    return this.isPaused;
   }
 }

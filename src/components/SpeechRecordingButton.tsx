@@ -1,19 +1,28 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { SpeechRecording, type SpeechRecordingConfig } from '../services/speechRecording';
+
+export interface SpeechRecordingButtonRef {
+  pauseRecording: () => void;
+  resumeRecording: () => void;
+  stopRecording: () => void;
+  isRecording: () => boolean;
+}
 
 interface SpeechRecordingButtonProps {
   apiKey: string;
   onTranscription: (text: string) => void;
   onRecordingComplete?: (finalText: string) => void;
+  onRecordingStateChange?: (isRecording: boolean) => void;
   disabled?: boolean;
 }
 
-const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({ 
+const SpeechRecordingButton = forwardRef<SpeechRecordingButtonRef, SpeechRecordingButtonProps>(({ 
   apiKey, 
   onTranscription,
   onRecordingComplete,
+  onRecordingStateChange,
   disabled = false 
-}) => {
+}, ref) => {
   const [status, setStatus] = useState<'idle' | 'recording' | 'processing' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [lastTranscript, setLastTranscript] = useState<string>('');
@@ -49,6 +58,9 @@ const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({
         onStatusChange: (newStatus) => {
           console.log('Status changed to:', newStatus);
           setStatus(newStatus);
+          if (onRecordingStateChange) {
+            onRecordingStateChange(newStatus === 'recording');
+          }
         }
       };
 
@@ -72,8 +84,32 @@ const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({
         onRecordingComplete(lastTranscript);
       }
       setLastTranscript('');
+      
+      // Notify parent that recording stopped
+      if (onRecordingStateChange) {
+        onRecordingStateChange(false);
+      }
     }
   };
+
+  const pauseRecording = () => {
+    if (speechRecordingRef.current) {
+      speechRecordingRef.current.pauseRecording();
+    }
+  };
+
+  const resumeRecording = () => {
+    if (speechRecordingRef.current) {
+      speechRecordingRef.current.resumeRecording();
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    pauseRecording,
+    resumeRecording,
+    stopRecording: handleStopRecording,
+    isRecording: () => status === 'recording'
+  }));
 
   const handleToggleRecording = () => {
     if (status === 'recording') {
@@ -134,6 +170,8 @@ const SpeechRecordingButton: React.FC<SpeechRecordingButtonProps> = ({
       )}
     </div>
   );
-};
+});
+
+SpeechRecordingButton.displayName = 'SpeechRecordingButton';
 
 export default SpeechRecordingButton;
