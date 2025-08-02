@@ -9,19 +9,39 @@ interface TextInputProps {
 
 export default function TextInput({ onSubmit, isLoading, placeholder = "Describe the HTML you want to generate..." }: TextInputProps) {
   const [text, setText] = useState('');
+  const [isFromSpeech, setIsFromSpeech] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (text.trim() && !isLoading) {
       onSubmit(text.trim());
       setText('');
+      setIsFromSpeech(false);
     }
   };
 
   const handleTranscription = (transcribedText: string) => {
-    // Automatically submit the transcribed text to generate HTML
-    if (transcribedText.trim() && !isLoading) {
-      onSubmit(transcribedText.trim());
+    // Set the transcribed text in the textarea so user can see it
+    if (transcribedText.trim()) {
+      setText(transcribedText.trim());
+      setIsFromSpeech(true);
+      
+      // Optionally auto-submit after a short delay to let user see the text
+      setTimeout(() => {
+        if (!isLoading) {
+          onSubmit(transcribedText.trim());
+          setText('');
+          setIsFromSpeech(false);
+        }
+      }, 1000); // 1 second delay to let user see the transcribed text
+    }
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    // If user starts typing, clear the speech indicator
+    if (isFromSpeech) {
+      setIsFromSpeech(false);
     }
   };
 
@@ -31,13 +51,18 @@ export default function TextInput({ onSubmit, isLoading, placeholder = "Describe
     <div className="input-controls">
       <form onSubmit={handleSubmit} className="text-input-form">
         <div className="input-container">
+          {isFromSpeech && (
+            <div className="speech-indicator">
+              🎤 Transcribed from speech - Auto-submitting in 1 second...
+            </div>
+          )}
           <textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleTextChange}
             placeholder={placeholder}
             disabled={isLoading}
             rows={4}
-            className="text-input"
+            className={`text-input ${isFromSpeech ? 'from-speech' : ''}`}
           />
           <button 
             type="submit" 

@@ -351,6 +351,41 @@
   background: #e9ecef;
 }
 
+/* Speech transcription indicator */
+.speech-indicator {
+  background: #e8f5e8;
+  color: #2d5a2d;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #b8e6b8;
+  font-size: 0.9rem;
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+  margin-bottom: 0.5rem;
+}
+
+.text-input.from-speech {
+  border-color: #28a745;
+  background: #f8fff8;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.1);
+}
+
+.text-input.from-speech:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .app {
     padding: 1rem;
