@@ -120,11 +120,14 @@ function App() {
         </div>
 
         <div className="preview-section">
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : (
+          <div className="preview-container">
             <HTMLPreview html={currentHTML} onClear={handleClear} />
-          )}
+            {isLoading && (
+              <div className="loading-overlay">
+                <LoadingSpinner />
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>
