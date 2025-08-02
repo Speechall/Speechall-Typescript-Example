@@ -6,11 +6,10 @@ interface TextInputProps {
   onTranscriptionUpdate?: (text: string) => void;
   isLoading: boolean;
   placeholder?: string;
-  onRecordingStateChange?: (isRecording: boolean) => void;
   speechRecordingRef?: React.RefObject<SpeechRecordingButtonRef | null>;
 }
 
-export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, placeholder = "Describe the HTML you want to generate...", onRecordingStateChange, speechRecordingRef }: TextInputProps) {
+export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, placeholder = "Describe the HTML you want to generate...", speechRecordingRef }: TextInputProps) {
   const [text, setText] = useState('');
   const [isFromSpeech, setIsFromSpeech] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -46,12 +45,7 @@ export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, 
     }
   };
 
-  const handleRecordingStateChange = (recordingState: boolean) => {
-    setIsRecording(recordingState);
-    if (onRecordingStateChange) {
-      onRecordingStateChange(recordingState);
-    }
-  };
+
 
   const speechallApiKey = import.meta.env.VITE_SPEECHALL_API_KEY;
 
@@ -93,7 +87,6 @@ export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, 
           setText('');
           setIsFromSpeech(false);
         }}
-        onRecordingStateChange={handleRecordingStateChange}
         disabled={isLoading}
       />
     </div>

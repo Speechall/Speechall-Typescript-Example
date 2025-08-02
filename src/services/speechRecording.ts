@@ -44,6 +44,10 @@ export class SpeechRecording {
       };
 
       ws.onmessage = (event) => {
+        // Ignore incoming transcripts while paused
+        if (this.isPaused) {
+          return;
+        }
         console.log('Received message from Speechall:', event.data);
         try {
           const data = JSON.parse(event.data);
@@ -120,8 +124,9 @@ export class SpeechRecording {
       console.log('AudioWorkletNode created');
       
       this.workletNode.port.onmessage = (event) => {
-        console.log('Sending audio data via WebSocket:', event.data.byteLength, 'bytes');
+        // Only send audio while not paused
         if (this.websocket && this.websocket.readyState === WebSocket.OPEN && !this.isPaused) {
+          console.log('Sending audio data via WebSocket:', event.data.byteLength, 'bytes');
           this.websocket.send(event.data);
         }
       };
@@ -144,14 +149,12 @@ export class SpeechRecording {
     });
 
     this.mediaRecorder.ondataavailable = (event) => {
-      console.log('MediaRecorder data available:', event.data.size, 'bytes');
       if (event.data.size > 0 && this.websocket && this.websocket.readyState === WebSocket.OPEN && !this.isPaused) {
+        console.log('MediaRecorder data available:', event.data.size, 'bytes');
         // Convert blob to array buffer and send
         event.data.arrayBuffer().then(buffer => {
           console.log('Sending MediaRecorder data via WebSocket:', buffer.byteLength, 'bytes');
-          if (this.websocket && this.websocket.readyState === WebSocket.OPEN && !this.isPaused) {
-            this.websocket.send(buffer);
-          }
+          this.websocket!.send(buffer);
         });
       }
     };
@@ -228,14 +231,14 @@ export class SpeechRecording {
   }
 
   pauseRecording(): void {
-    if (this.status === 'recording') {
+    if (!this.isPaused) {
       this.isPaused = true;
       console.log('Recording paused');
     }
   }
 
   resumeRecording(): void {
-    if (this.status === 'recording' && this.isPaused) {
+    if (this.isPaused) {
       this.isPaused = false;
       console.log('Recording resumed');
     }

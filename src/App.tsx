@@ -12,14 +12,13 @@ function App() {
   const currentHTMLRef = useRef('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isRecording, setIsRecording] = useState(false)
   const [queuedPrompt, setQueuedPrompt] = useState<string | null>(null)
   const speechRecordingRef = useRef<SpeechRecordingButtonRef>(null)
 
   const handleGenerateHTML = async (prompt: string, forceNew: boolean = false) => {
     // Pause recording if it's active
     let wasRecording = false;
-    if (isRecording && speechRecordingRef.current) {
+    if (speechRecordingRef.current?.isRecording()) {
       wasRecording = true;
       speechRecordingRef.current.pauseRecording();
     }
@@ -74,9 +73,7 @@ function App() {
     setError(null)
   }
 
-  const handleRecordingStateChange = (recordingState: boolean) => {
-    setIsRecording(recordingState)
-  }
+
 
   // Keep ref in sync with latest HTML
   useEffect(() => {
@@ -112,7 +109,6 @@ function App() {
                 ? "Describe how you want to update the current HTML..." 
                 : "Describe the HTML you want to generate..."
             }
-            onRecordingStateChange={handleRecordingStateChange}
             speechRecordingRef={speechRecordingRef}
           />
           
