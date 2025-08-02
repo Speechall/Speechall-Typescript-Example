@@ -2,6 +2,10 @@
 
 A React application that uses Speechall's live transcription and Claude AI to generate and iteratively update HTML based on user descriptions. Features speech-to-text input powered by Speechall for hands-free HTML creation. Every time you say something, it will be used as instructions to update the HTML. What you say is transcribed live using WebSockets and passed to the LLM.
 
+
+https://github.com/user-attachments/assets/ed02744c-3e36-45ac-a216-7f5a6441d8e8
+
+
 ## Features
 
 - 🤖 **AI-Powered HTML Generation**: Describe what you want and Claude will generate HTML for you
