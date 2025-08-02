@@ -51,44 +51,56 @@ export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, 
 
   return (
     <div className="input-controls">
-      <form onSubmit={handleSubmit} className="text-input-form">
-        <div className="input-container">
-          {isFromSpeech && (
-            <div className="speech-indicator">
-              🎤 Transcribed from speech
-            </div>
-          )}
-          <textarea
-            value={text}
-            onChange={handleTextChange}
-            placeholder={placeholder}
-            disabled={isLoading}
-            rows={4}
-            className={`text-input ${isFromSpeech ? 'from-speech' : ''}`}
-          />
-          <button 
-            type="submit" 
-            disabled={!text.trim() || isLoading || isRecording}
-            className="submit-button"
-          >
-            {isLoading ? 'Generating...' : 'Generate HTML'}
-          </button>
+      {/* Voice Input Section - Made Prominent */}
+      <div className="voice-input-section">
+        <div className="voice-section-header">
+          <h3>🎤 Voice Input (Recommended)</h3>
+          <p>Speak your ideas and watch HTML generate in real-time as you talk!</p>
         </div>
-      </form>
+        <SpeechRecordingButton
+          ref={effectiveSpeechRecordingRef}
+          apiKey={speechallApiKey}
+          onTranscription={handleTranscription}
+          onRecordingComplete={() => {
+            // No longer submit on recording complete since we're doing real-time updates
+            setText('');
+            setIsFromSpeech(false);
+          }}
+          disabled={isLoading}
+        />
+        {isFromSpeech && (
+          <div className="live-transcription-indicator">
+            ✨ Live transcription active - HTML updating as you speak!
+          </div>
+        )}
+      </div>
       
-      <div className="input-divider">or</div>
+      <div className="input-divider">
+        <span>or use text input</span>
+      </div>
       
-      <SpeechRecordingButton
-        ref={effectiveSpeechRecordingRef}
-        apiKey={speechallApiKey}
-        onTranscription={handleTranscription}
-        onRecordingComplete={() => {
-          // No longer submit on recording complete since we're doing real-time updates
-          setText('');
-          setIsFromSpeech(false);
-        }}
-        disabled={isLoading}
-      />
+      {/* Text Input Section - Secondary Option */}
+      <div className="text-input-section">
+        <form onSubmit={handleSubmit} className="text-input-form">
+          <div className="input-container">
+            <textarea
+              value={text}
+              onChange={handleTextChange}
+              placeholder={placeholder}
+              disabled={isLoading}
+              rows={3}
+              className={`text-input ${isFromSpeech ? 'from-speech' : ''}`}
+            />
+            <button 
+              type="submit" 
+              disabled={!text.trim() || isLoading || isRecording}
+              className="submit-button"
+            >
+              {isLoading ? 'Generating...' : 'Generate HTML'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

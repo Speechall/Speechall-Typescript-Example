@@ -94,8 +94,9 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>HTML Generator with Claude</h1>
-        <p>Describe what you want to create, and Claude will generate HTML for you!</p>
+        <h1>Voice-Driven HTML Generator</h1>
+        <p>🎤 <strong>Just speak naturally</strong> - Your voice is continuously transcribed and instantly used to generate or update HTML in real-time!</p>
+        <p className="secondary-description">No need to press buttons or wait - start talking and watch your ideas come to life.</p>
       </header>
 
       <main className="app-main">
