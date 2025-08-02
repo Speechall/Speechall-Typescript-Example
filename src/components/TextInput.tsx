@@ -3,11 +3,12 @@ import SpeechRecordingButton from './SpeechRecordingButton';
 
 interface TextInputProps {
   onSubmit: (text: string) => void;
+  onTranscriptionUpdate?: (text: string) => void;
   isLoading: boolean;
   placeholder?: string;
 }
 
-export default function TextInput({ onSubmit, isLoading, placeholder = "Describe the HTML you want to generate..." }: TextInputProps) {
+export default function TextInput({ onSubmit, onTranscriptionUpdate, isLoading, placeholder = "Describe the HTML you want to generate..." }: TextInputProps) {
   const [text, setText] = useState('');
   const [isFromSpeech, setIsFromSpeech] = useState(false);
 
@@ -25,6 +26,10 @@ export default function TextInput({ onSubmit, isLoading, placeholder = "Describe
     if (transcribedText.trim()) {
       setText(transcribedText.trim());
       setIsFromSpeech(true);
+      // Trigger real-time HTML update
+      if (onTranscriptionUpdate) {
+        onTranscriptionUpdate(transcribedText.trim());
+      }
     }
   };
 
@@ -70,12 +75,10 @@ export default function TextInput({ onSubmit, isLoading, placeholder = "Describe
       <SpeechRecordingButton
         apiKey={speechallApiKey}
         onTranscription={handleTranscription}
-        onRecordingComplete={(finalText: string) => {
-          if (finalText.trim() && !isLoading) {
-            onSubmit(finalText.trim());
-            setText('');
-            setIsFromSpeech(false);
-          }
+        onRecordingComplete={() => {
+          // No longer submit on recording complete since we're doing real-time updates
+          setText('');
+          setIsFromSpeech(false);
         }}
         disabled={isLoading}
       />

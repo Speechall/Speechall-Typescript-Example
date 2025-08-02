@@ -16,11 +16,20 @@ export async function generateHTML(prompt: string): Promise<HTMLGenerationRespon
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
+      system: `You are an expert HTML generator. Your task is to create clean, functional HTML based on user descriptions. 
+
+Key guidelines:
+- Generate semantic, accessible HTML
+- Include inline CSS styles for proper appearance and layout
+- Make content responsive and visually appealing
+- Do not include DOCTYPE, html, head, or body tags
+- Return only the HTML content that can be rendered directly in a div
+- Focus on creating well-structured, maintainable code`,
       messages: [{
         role: 'user',
         content: `Generate HTML code based on this description: "${prompt}"
 
-Please return only clean HTML code without explanations. The HTML should be complete and functional with inline CSS styles for proper appearance. Do not include <!DOCTYPE>, <html>, <head>, or <body> tags - just the content that can be rendered directly in a div.`
+Please return only clean HTML code without explanations.`
       }]
     });
 
@@ -45,6 +54,17 @@ export async function updateHTML(currentHTML: string, updatePrompt: string): Pro
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
+      system: `You are an expert HTML updater that makes incremental modifications to existing HTML. Your core responsibility is to PRESERVE existing content while applying targeted updates.
+
+CRITICAL BEHAVIOR:
+- You are NOT a content replacer - you are a content enhancer/modifier
+- ALWAYS preserve existing HTML elements, text, and styling that are not explicitly mentioned in the user's instruction
+- Make only the specific changes requested by the user
+- Think of your role as "surgical editing" - precise, targeted modifications
+- Maintain the overall structure, layout, and functionality unless specifically asked to change them
+- When in doubt, preserve rather than replace
+
+Your output should be the complete HTML with existing content intact plus the requested modifications.`,
       messages: [{
         role: 'user',
         content: `Here is the current HTML:
@@ -52,15 +72,9 @@ export async function updateHTML(currentHTML: string, updatePrompt: string): Pro
 ${currentHTML}
 \`\`\`
 
-IMPORTANT: The user's instruction below is an ADDITION/MODIFICATION to the existing HTML above. Do NOT replace the entire HTML content. Instead:
-1. Keep all existing HTML elements and content that are not specifically mentioned in the instruction
-2. Only modify, add to, or enhance the parts that the instruction specifically refers to
-3. Preserve the overall structure and styling unless the instruction explicitly asks to change them
-4. Think of this as an incremental update, not a complete rewrite
-
 User instruction: "${updatePrompt}"
 
-Return the complete updated HTML code (keeping existing content + applying the user's changes). Do not include explanations. The HTML should be functional with inline CSS styles. Do not include <!DOCTYPE>, <html>, <head>, or <body> tags - just the content that can be rendered directly in a div.`
+Return the complete updated HTML code (preserving all existing content + applying the requested changes). Do not include explanations or tags like DOCTYPE, html, head, or body.`
       }]
     });
 

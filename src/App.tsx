@@ -51,6 +51,7 @@ function App() {
         <div className="input-section">
           <TextInput
             onSubmit={handleGenerateHTML}
+            onTranscriptionUpdate={handleGenerateHTML}
             isLoading={isLoading}
             placeholder={
               currentHTML 
